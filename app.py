@@ -3,19 +3,19 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import chromadb
 
-# 1️⃣ Load environment variables
+# Load environment variables
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 
-# 2️⃣ Initialize embedding model
+# Initialize embedding model
 # 'all-MiniLM-L6-v2' is a small but powerful model that converts text -> vector embeddings.
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# 3️⃣ Initialize Chroma client
+#  Initialize Chroma client
 client = chromadb.Client()
 collection = client.create_collection(name="knowledge_base")
 
-# 4️⃣ Load and process documents
+# Load and process documents
 def load_documents(folder_path):
     documents = []
     for filename in os.listdir(folder_path):
@@ -24,12 +24,12 @@ def load_documents(folder_path):
                 documents.append(f.read())
     return documents
 
-# 5️⃣ Split text into small chunks (because large text can lose context)
+# Split text into small chunks (because large text can lose context)
 def chunk_text(text, chunk_size=300):
     words = text.split()
     return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
 
-# 6️⃣ Create embeddings and store them in Chroma
+# Create embeddings and store them in Chroma
 def store_documents(docs):
     ids = []
     texts = []
@@ -45,7 +45,7 @@ def store_documents(docs):
             embeddings.append(embedding)
 
     collection.add(ids=ids, embeddings=embeddings, documents=texts)
-    print(f"✅ Stored {len(embeddings)} text chunks in ChromaDB.")
+    print("Stored {len(embeddings)} text chunks in ChromaDB.")
 
 
 from groq import Groq
@@ -61,7 +61,7 @@ groq_client = Groq(api_key=groq_api_key)
 # Replace the internal HTTP client with the unverified one
 groq_client._client = custom_http_client
 
-# 8️⃣ Function: Retrieve top similar chunks
+#  Function: Retrieve top similar chunks
 def retrieve_relevant_chunks(query, top_k=3):
     # Convert query to embedding
     query_embedding = embedding_model.encode(query).tolist()
@@ -73,7 +73,7 @@ def retrieve_relevant_chunks(query, top_k=3):
     retrieved_texts = results['documents'][0]
     return retrieved_texts
 
-# 9️⃣ Function: Ask question and generate answer using Groq
+# Function: Ask question and generate answer using Groq
 def generate_answer(query):
     # Retrieve context from stored documents
     context_chunks = retrieve_relevant_chunks(query)
@@ -103,17 +103,17 @@ def generate_answer(query):
     answer = response.choices[0].message.content
     return answer
 
-# 🔟 CLI interface
+# CLI interface
 if __name__ == "__main__":
     docs = load_documents("docs")
     store_documents(docs)
 
-    print("\n🤖 RAG Chatbot Ready! Ask your questions below (type 'exit' to quit)\n")
+    print("\n Ask your questions below (type 'exit' to quit)\n")
 
     while True:
         query = input("You: ")
         if query.lower() == "exit":
-            print("Goodbye 👋")
+            print("bye!")
             break
 
         answer = generate_answer(query)
